@@ -1,5 +1,9 @@
 # Submitting to the RuneLite Plugin Hub
 
+**Quick PR (already prepared):** The plugin-hub branch and manifest file are ready in `c:\Users\devez\plugin-hub`. See that folder’s **OPEN_PR_INSTRUCTIONS.md** to push the branch and open the PR (fork → push → create PR with the given title/description).
+
+---
+
 Follow these steps to get **Minimap Greenscreen** on the official Plugin Hub so users can install it via **RuneLite → Plugin Hub**.
 
 ---
