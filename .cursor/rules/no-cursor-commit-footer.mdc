@@ -1,0 +1,9 @@
+---
+description: Do not add Cursor branding to commits
+alwaysApply: true
+---
+
+# Commits and Git
+
+- **Do not** add "Made-with: Cursor", "Made-with: Cursor AI", or any similar Cursor/AI attribution line to commit messages.
+- Keep commit messages free of tooling footers or branding.
