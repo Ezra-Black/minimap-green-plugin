@@ -39,7 +39,9 @@ Follow these steps to get **Minimap Greenscreen** on the official Plugin Hub so 
    ```
    Replace `YourGitHubUsername` and the repo name with your actual GitHub username and repository name.
 
-4. **Check the layout** — the repo should look like:
+4. **Optional: add a LICENSE** — Plugin Hub recommends BSD 2-Clause. In your repo: *Add file → Create new file →* filename `LICENSE`, then *Choose a license template* → *BSD 2-Clause "Simplified" License*.
+
+5. **Check the layout** — the repo should look like:
    ```
    your-repo/
    ├── src/main/java/com/minimapgreen/plugin/
@@ -67,67 +69,81 @@ or on Windows:
 gradlew.bat build
 ```
 
-The Plugin Hub will build from this repo; the build must succeed.
+The Plugin Hub CI will build from your repo; the build **must** succeed.
 
 ---
 
-## 3. Fork the Plugin Hub
+## 3. Fork the Plugin Hub and create a branch
 
-1. Open: **https://github.com/runelite/plugin-hub**
-2. Click **Fork** and create your fork (e.g. `https://github.com/YourGitHubUsername/plugin-hub`).
+1. Open **https://github.com/runelite/plugin-hub** and click **Fork** (e.g. `https://github.com/YourGitHubUsername/plugin-hub`).
 
----
-
-## 4. Add the plugin to the manifest
-
-1. **Clone your fork** (if you don’t have it yet):
+2. Clone your fork and create a branch from upstream `master`:
    ```bash
    git clone https://github.com/YourGitHubUsername/plugin-hub
    cd plugin-hub
+   git remote add upstream https://github.com/runelite/plugin-hub.git
+   git fetch upstream
+   git checkout -B minimap-greenscreen upstream/master
    ```
 
-2. **Edit** `plugins/plugins.json`.
+---
 
-3. **Add one entry** for Minimap Greenscreen (order doesn’t matter; keep JSON valid):
-   ```json
-   {
-     "name": "Minimap Greenscreen",
-     "repository": "https://github.com/YourGitHubUsername/minimap-green-plugin"
-   }
+## 4. Add the plugin manifest file
+
+The Plugin Hub uses **one file per plugin** in `plugins/`, not a single JSON file.
+
+1. **Create a new file** in the `plugins/` directory. The **filename** is the plugin’s identifier (e.g. `minimap-greenscreen`). Use lowercase and hyphens.
+
+2. **Content** of the file (two required lines; add `warning=` only if your plugin makes outbound HTTP to a third party):
    ```
-   Use your real GitHub username and the actual repo URL.
+   repository=https://github.com/YourGitHubUsername/minimap-green-plugin.git
+   commit=<40-character-full-commit-hash>
+   ```
 
-4. **Commit and push** to your fork:
+3. **Get the commit hash** from your plugin repo:
+   - On GitHub: open your plugin repo → **Commits** → click the latest commit → copy the **full 40-character hash** (top right).
+   - Or locally: `git rev-parse HEAD`
+
+4. **Example** — if your username is `jane` and latest commit is `a1b2c3d4e5f6...`:
+   - Create file: `plugins/minimap-greenscreen`
+   - Contents:
+     ```
+     repository=https://github.com/jane/minimap-green-plugin.git
+     commit=a1b2c3d4e5f6789012345678901234567890abcd
+     ```
+
+5. **Commit and push** your branch:
    ```bash
-   git add plugins/plugins.json
+   git add plugins/minimap-greenscreen
    git commit -m "Add Minimap Greenscreen plugin"
-   git push origin main
+   git push -u origin minimap-greenscreen
    ```
 
 ---
 
-## 5. Open a Pull Request
+## 5. Open the Pull Request
 
-1. On GitHub, open your fork of `plugin-hub`.
-2. Use **Compare & pull request** (or **Contribute → Open pull request**).
-3. Target: **runelite/plugin-hub**, branch **master** (or whatever the default branch is).
-4. Title example: **Add Minimap Greenscreen plugin**
-5. In the description, mention:
-   - It’s a visual-only overlay for streaming (minimap chroma key).
-   - No automation or input simulation.
-6. Submit the PR.
+1. On GitHub, open your fork and use **Compare & pull request** (or **Contribute → Open pull request**).
+2. **Base:** `runelite/plugin-hub` → `master`. **Compare:** your fork → `minimap-greenscreen`.
+3. **Title:** e.g. **Add Minimap Greenscreen plugin**
+4. **Description** — include:
+   - What the plugin does: visual-only overlay that draws chroma-key green over the minimap for streaming (OBS/Streamlabs).
+   - That it does **not** automate gameplay, simulate input, or interact with the game beyond drawing an overlay.
+5. **Create pull request**.
 
 ---
 
-## 6. Review and release
+## 6. CI and review
 
-- RuneLite maintainers will review (code safety, no malicious behavior, build, API usage).
-- Visual overlays and streaming helpers are generally acceptable; automation/input abuse is not.
-- After the PR is merged, the plugin will be available in **RuneLite → Plugin Hub**; users can search **Minimap Greenscreen** and install it there.
+- **Build workflow:** Check the PR for `.github/workflows/build.yml / build (pull_request)`. It must be ✔️. If ❌, open *Details* and fix the reported errors (often build or `commit=` hash).
+- **Plugin Hub Checks:** If it reports “Changes are needed”, address those in your plugin repo, then update the **commit=** hash in your plugin-hub file and push a new commit to the same PR.
+- **Human review:** Maintainers will review for safety, Jagex rules, and [Rejected/Rolled Back](https://github.com/runelite/runelite/wiki/Rejected-or-Rolled-Back-Features) features. Visual/streaming overlays are generally acceptable.
+- After merge, the plugin appears in **RuneLite → Plugin Hub**; users can search for **Minimap Greenscreen** and install it.
 
 ---
 
 ## Notes
 
-- **Plugin Hub rejects** plugins that automate gameplay, interact with inputs/macros, or violate game rules. This plugin only draws a green overlay and is within those rules.
-- Keep `runelite-plugin.properties` and `build.gradle` in the repo as they are; the Hub uses them to build and list your plugin.
+- **Plugin Hub rejects** plugins that automate gameplay, simulate input, or violate [Jagex’s third-party client guidelines](https://secure.runescape.com/m=news/third-party-client-guidelines?oldschool=1). This plugin only draws a green overlay and is within those rules.
+- Keep `runelite-plugin.properties` and `build.gradle` as-is; the Hub uses them to build and list your plugin.
+- To **update** the plugin later: change the `commit=` in `plugins/minimap-greenscreen` to the new commit hash and open a new PR (or push to the same branch and update the existing PR).
