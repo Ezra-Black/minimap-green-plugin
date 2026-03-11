@@ -1,8 +1,8 @@
 package com.minimapgreen.plugin;
 
 import net.runelite.api.Client;
+import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -13,10 +13,10 @@ import java.awt.geom.Ellipse2D;
 
 public class MinimapGreenOverlay extends Overlay
 {
-	private static final WidgetInfo[] MINIMAP_WIDGETS = {
-		WidgetInfo.FIXED_VIEWPORT_MINIMAP_DRAW_AREA,
-		WidgetInfo.RESIZABLE_MINIMAP_STONES_DRAW_AREA,
-		WidgetInfo.RESIZABLE_MINIMAP_DRAW_AREA
+	private static final int[] MINIMAP_COMPONENT_IDS = {
+		ComponentID.FIXED_VIEWPORT_MINIMAP_DRAW_AREA,
+		ComponentID.RESIZABLE_VIEWPORT_BOTTOM_LINE_MINIMAP_DRAW_AREA,
+		ComponentID.RESIZABLE_VIEWPORT_MINIMAP_DRAW_AREA
 	};
 
 	private static final Color CHROMA_KEY_GREEN = new Color(0, 255, 0);
@@ -60,9 +60,9 @@ public class MinimapGreenOverlay extends Overlay
 
 	private Widget getMinimapWidget()
 	{
-		for (WidgetInfo info : MINIMAP_WIDGETS)
+		for (int componentId : MINIMAP_COMPONENT_IDS)
 		{
-			Widget w = client.getWidget(info);
+			Widget w = client.getWidget(componentId);
 			if (w != null && !w.isHidden())
 			{
 				return w;
