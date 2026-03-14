@@ -9,6 +9,7 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 
 import javax.inject.Inject;
 import java.awt.*;
+import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 
 public class MinimapGreenOverlay extends Overlay
@@ -19,14 +20,29 @@ public class MinimapGreenOverlay extends Overlay
 		ComponentID.RESIZABLE_VIEWPORT_MINIMAP_DRAW_AREA
 	};
 
-	private static final Color CHROMA_KEY_GREEN = new Color(0, 255, 0);
+	/** Component IDs for orbs/buttons around the minimap that must not be covered. */
+	private static final int[] MINIMAP_ORB_COMPONENT_IDS = {
+		ComponentID.MINIMAP_HEALTH_ORB,
+		ComponentID.MINIMAP_PRAYER_ORB,
+		ComponentID.MINIMAP_RUN_ORB,
+		ComponentID.MINIMAP_SPEC_ORB,
+		ComponentID.MINIMAP_QUICK_PRAYER_ORB,
+		ComponentID.MINIMAP_TOGGLE_RUN_ORB,
+		ComponentID.MINIMAP_XP_ORB,
+		ComponentID.MINIMAP_WORLDMAP_ORB,
+		ComponentID.MINIMAP_WIKI_BANNER_PARENT
+	};
 
 	private final Client client;
+	private final MinimapGreenConfig config;
+	private boolean hidden;
 
 	@Inject
-	public MinimapGreenOverlay(Client client)
+	public MinimapGreenOverlay(Client client, MinimapGreenConfig config)
 	{
 		this.client = client;
+		this.config = config;
+		this.hidden = !config.defaultOn();
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		setPosition(OverlayPosition.DYNAMIC);
 	}
@@ -34,6 +50,11 @@ public class MinimapGreenOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D g)
 	{
+		if (hidden)
+		{
+			return null;
+		}
+
 		Widget minimap = getMinimapWidget();
 		if (minimap == null || minimap.isHidden())
 		{
@@ -43,19 +64,39 @@ public class MinimapGreenOverlay extends Overlay
 		Rectangle bounds = minimap.getBounds();
 		int centerX = bounds.x + bounds.width / 2;
 		int centerY = bounds.y + bounds.height / 2;
-		int radius = Math.min(bounds.width, bounds.height) / 2 - 6;
+		// Use full radius so the overlay reaches the edge of the minimap (no visible ring).
+		int radius = Math.min(bounds.width, bounds.height) / 2;
 
-		Ellipse2D circle = new Ellipse2D.Double(
+		Area fill = new Area(new Ellipse2D.Double(
 			centerX - radius,
 			centerY - radius,
 			radius * 2,
 			radius * 2
-		);
+		));
 
-		g.setColor(CHROMA_KEY_GREEN);
-		g.fill(circle);
+		// Subtract orb/button regions so they remain visible and are not covered by the overlay.
+		for (int componentId : MINIMAP_ORB_COMPONENT_IDS)
+		{
+			Widget w = client.getWidget(componentId);
+			if (w != null && !w.isHidden())
+			{
+				Rectangle orbBounds = w.getBounds();
+				if (orbBounds != null && !orbBounds.isEmpty())
+				{
+					fill.subtract(new Area(orbBounds));
+				}
+			}
+		}
+
+		g.setColor(config.chromaColor());
+		g.fill(fill);
 
 		return null;
+	}
+
+	void toggle()
+	{
+		hidden = !hidden;
 	}
 
 	private Widget getMinimapWidget()
